@@ -1,0 +1,92 @@
+Machine learning con Titanic datasets
+
+In questo problema analizzerò un dataset contenente varie features sui passeggeri del Titanic
+ per predirne la loro sopravvivenza al disastro avvenuto il 12 Aprile 1912.
+
+---Pulizia dei dati---
+ Nel dataset sono presenti 891 passeggeri, ognuno dei quali ha 12 features assegnate.
+ -PassengerId: Id univoco passeggero
+ -Survived: indica se un passeggero è sopravissuto
+ -Pclass: indica classe biglietto
+ -Name: nome completo passeggero
+ -Sex: sesso
+ -Age: età
+ -SibSp: numero di accompagnatori/sposi/fratelli a bordo
+ -Parch: numero di figli/genitori a bordo
+ -Ticket: numero Ticket
+ -Fare: tariffa passeggero
+ -Cabin: numero Cabina
+ -Embarked: porto di imbarco
+
+Controllo se qualche passeggero ha features senza alcun valore.
+Age: 177
+Cabin: 687
+Decido di sostituire i dati in questo modo:
+Age: Una persona senza età rientrerà nella categoria 2 (mezza età).
+Cabin: Una persona senza cabina e di prima classe con almeno un parente, rientrerà nella categoria "con cabina".
+       I restanti casi rientreranno nella categoria senza cabina.
+
+
+---Analisi dei dati, prima fase---
+
+1° classe sopravissuti = 136 su 216   rapporto=0,629
+2° classe sopravissuti = 87 su 184    rapporto=0,472
+3° classe sopravissuti = 119 su 491   rapporto=0,242
+
+persone sole: 534  |   persone con famigliari: 357
+sopravissute: 163  |   sopravissute: 179
+rapporto: 0,30     |   rapporto: 0,5
+
+donne: su 314 sopravissute 233     rapporto 0,71
+uomini: su 577 sopravissuti 109    rapporto 0,18
+
+Decido di testare queste prime tre features. Trasformo le features in type float per poterci lavorare
+con la libreria sklearn. Scelgo di utilizzare modelli di classificazione, dato che un modello di regressione
+non mi sembra adatto alla risoluzione del problema.
+
+                  GaussianNB | DecisionTreeClassifier | SVC
+Media best_score_    0.77               0.80             0.80
+
+Piattaforma Kaggle: 0.75
+
+
+
+---Analisi dei dati, seconda fase---
+
+Per migliorare introduco nuove features: Fare, Age e Embarked
+
+Media tariffa passeggero: 32 | passeggero sopravissuto: 48
+
+Media sopravissuti divisi per porto di imbarco:
+Q = 0,45 | S = 0,33 | C = 0,5
+
+Media età nave: 29,7 | età nave sopravissuto: 28,3
+
+                    GaussianNB | DecisionTreeClassifier | SVC
+Media best_score_    0.76               0.81              0.67
+
+Piattaforma Kaggle con DecisionTreeClassifier: 0.77
+
+Considerazioni:
+Visto che non è possibile tracciare una separazione netta tra sopravissuti o no, SVC ha peggiorato
+notevolmente le sue prestazioni con l'introduzioni di nuove features.
+Gaussian Naive Bayes ha leggermete peggiorato le sue prestazioni. Questo può essere dovuto alla creazione
+di nuove dipendenze tra le features introdotte con le altre. Ad esempio, Fare è sicuramente dipendente da
+Pclass. Gaussian Naive Bayes parte dal presupposto che tutte le features siano indipendenti.
+DecisionTreeClassifier ha riscontrato un leggero aumento. Questo lo pone come candidato per
+la fase di tuning.
+
+Testo diversi parametri con DecisionTreeClassifier per migliorarne le prestazioni.
+Limito alcuni parametri come la profondità e il numero di foglie massimo. Questo per impedire un'impurità
+troppo alta e limitare l'overfitting, che in questo tipo di algoritmo è facile riscontrare.
+Ottengo un best_score di 0.84 e un punteggio sulla piattaforma Kaggle di 0.79.
+
+Possibili miglioramenti:
+-Prova di ulteriori algoritmi e tuning più efficace. Ho fatto un test con GradientBoostingClassifier
+ che ha ottenuto uno score sul training di 0.85, ma una peggiore valutazione su Kaggle.
+-Possibile lavoro sulle features. Ad esempio, creandole di nuove (features engineering) come nel caso di "Onboard".
+ Magari una features che prende in cosiderazione la cabina del passeggero e il suo porto di imbarco. Questo potrebbe dare
+ un'idea più chiara sulla posizione del passeggero sulla nave. Inoltre la ricerca e rimozione di eventuali outliers potrebbe
+ migliorare le performace. Ad esempio, solo tre donne su 81 appartenenti alla 1° classe non sono sopravissute.
+
+Posizione finale piattaforma: 1800 (ma fino alla 1300 il punteggio non cambia) su 18000 teams
