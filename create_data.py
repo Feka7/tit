@@ -18,7 +18,9 @@ def csv2dict(csv_file):
                 data[row[0]] = tmp
         return data
 
+#Inserire train.csv dopo aver eseguito il file con test.csv
 dict = csv2dict("test.csv")
+
 
 for x in dict.keys():
 
